@@ -1,43 +1,64 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField]
-    float _moveSpeed = 10f;
-    Rigidbody _rb;
+    [SerializeField] float _moveSpeed = 10f;
+    [SerializeField] float _jumpHeight = 2f;
+    [SerializeField] float _gravityValue = -9.81f;
+    [Range(0.1f, 6f)][SerializeField] float _fallSpeed = 3f;
+    [SerializeField] bool _isGrounded;
+
+    Vector3 _jumpVelocity;
+
+    CharacterController _characterController;
 
     void Awake()
     {
-        _rb = GetComponent<Rigidbody>();
+        _characterController = GetComponent<CharacterController>();
     }
 
     void Update()
     {
-        if (Input.GetKey(KeyCode.W))
+        _isGrounded = _characterController.isGrounded;
+
+        MoveCharacter();
+        ResetGravityIfGrounded();
+        Jump();
+        ApplyVelocityForces();
+    }
+
+    private void ApplyVelocityForces()
+    {
+        _jumpVelocity.y += _gravityValue * Time.deltaTime * _fallSpeed;
+        _characterController.Move(_jumpVelocity * Time.deltaTime);
+    }
+
+    private void Jump()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && _isGrounded)
         {
-            _rb.velocity = Vector3.forward * (_moveSpeed * Time.deltaTime);
-            Debug.Log("Moving Forward");
+            _jumpVelocity.y += Mathf.Sqrt(_jumpHeight * -3.0f * _gravityValue);
         }
-        if (Input.GetKey(KeyCode.A))
+    }
+
+    void ResetGravityIfGrounded()
         {
-            _rb.velocity = Vector3.left * (_moveSpeed * Time.deltaTime);
-            Debug.Log("Moving Left");
+            if (_isGrounded)
+            {
+                _jumpVelocity.y = -0.2f;
+            }
         }
-        if (Input.GetKey(KeyCode.S))
-        {
-            _rb.velocity = Vector3.back * (_moveSpeed * Time.deltaTime);
-            Debug.Log("Moving Backwards");
-        }
-        if (Input.GetKey(KeyCode.D))
-        {
-            _rb.velocity = Vector3.right * (_moveSpeed * Time.deltaTime);
-            Debug.Log("Moving Right");
-        }
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Debug.Log("Jumping");
-        }
+
+    private void MoveCharacter()
+    {
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float forward = Input.GetAxisRaw("Vertical");
+        Vector3 moveDir = new Vector3(horizontal, 0, forward);
+
+
+        _characterController.Move(moveDir * _moveSpeed * Time.deltaTime);
     }
 }
