@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] float _moveSpeed = 10f;
-    [SerializeField] float _jumpHeight = 2f;
-    [SerializeField] float _gravityValue = -9.81f;
+    [Range(1f, 35f)][SerializeField] float _moveSpeed = 10f;
+    [Range(1f, 10f)][SerializeField] float _jumpHeight = 2f;
     [Range(0.1f, 6f)][SerializeField] float _fallSpeed = 3f;
+    [SerializeField] float _gravityValue = -9.81f;
     [SerializeField] bool _isGrounded;
 
     Vector3 _jumpVelocity;
@@ -30,18 +30,14 @@ public class Player : MonoBehaviour
         ApplyVelocityForces();
     }
 
-    private void ApplyVelocityForces()
+    void MoveCharacter()
     {
-        _jumpVelocity.y += _gravityValue * Time.deltaTime * _fallSpeed;
-        _characterController.Move(_jumpVelocity * Time.deltaTime);
-    }
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float forward = Input.GetAxisRaw("Vertical");
+        Vector3 moveDir = new Vector3(horizontal, 0, forward);
 
-    private void Jump()
-    {
-        if (Input.GetKeyDown(KeyCode.Space) && _isGrounded)
-        {
-            _jumpVelocity.y += Mathf.Sqrt(_jumpHeight * -3.0f * _gravityValue);
-        }
+
+        _characterController.Move(moveDir.normalized * _moveSpeed * Time.deltaTime);
     }
 
     void ResetGravityIfGrounded()
@@ -51,14 +47,21 @@ public class Player : MonoBehaviour
                 _jumpVelocity.y = -0.2f;
             }
         }
-
-    private void MoveCharacter()
+    void Jump()
     {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float forward = Input.GetAxisRaw("Vertical");
-        Vector3 moveDir = new Vector3(horizontal, 0, forward);
-
-
-        _characterController.Move(moveDir * _moveSpeed * Time.deltaTime);
+        if (Input.GetKeyDown(KeyCode.Space) && _isGrounded)
+        {
+            _jumpVelocity.y += Mathf.Sqrt(_jumpHeight * -3.0f * _gravityValue);
+        }
     }
+
+    void ApplyVelocityForces()
+    {
+        _jumpVelocity.y += _gravityValue * Time.deltaTime * _fallSpeed;
+        _characterController.Move(_jumpVelocity * Time.deltaTime);
+    }
+
+
+
+
 }
